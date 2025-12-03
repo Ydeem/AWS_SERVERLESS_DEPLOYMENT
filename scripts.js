@@ -1,7 +1,6 @@
 // Correct API endpoint
 var API_ENDPOINT = "https://yemoe9i10j.execute-api.us-east-1.amazonaws.com/prod";
-// If you attached GET/POST to /students, then:
-// var API_ENDPOINT = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/students";
+
 
 // POST: save student data
 document.getElementById("savestudent").onclick = function () {
@@ -53,6 +52,8 @@ document.getElementById("getstudents").onclick = function () {
             console.log("GET success raw:", response);
 
             var students = response;
+
+            // If API returns a JSON string, parse it
             if (typeof response === "string") {
                 try {
                     students = JSON.parse(response);
@@ -92,3 +93,4 @@ document.getElementById("getstudents").onclick = function () {
         }
     });
 };
+
