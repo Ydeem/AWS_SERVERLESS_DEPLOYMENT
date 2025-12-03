@@ -3,7 +3,6 @@
 const POST_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/insertStudentData";
 const GET_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/getStudents";
 
-
 document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("saveBtn");
   const viewBtn = document.getElementById("viewBtn");
@@ -11,8 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   saveBtn.addEventListener("click", saveStudent);
   viewBtn.addEventListener("click", loadStudents);
 
-  // Optional: load students when page first opens
-  // loadStudents();
+  // optionally: loadStudents();
 });
 
 async function saveStudent() {
@@ -30,11 +28,10 @@ async function saveStudent() {
   }
 
   const payload = {
-    // make sure your Lambda expects these names:
-    studentid: studentId,          // partition key in DynamoDB
+    studentid: studentId,      // must match Lambda
     studentName,
     studentClass,
-    studentAge
+    studentAge,
   };
 
   try {
@@ -44,24 +41,26 @@ async function saveStudent() {
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
-    console.log("POST result:", data);
+    const text = await res.text();
+    console.log("POST status:", res.status);
+    console.log("POST raw:", text);
 
-    if (!res.ok) throw new Error(data.message || "Error saving");
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
 
+    // success
     messageDiv.textContent = "Student saved successfully!";
     messageDiv.style.color = "green";
 
-    // clear inputs
     document.getElementById("studentId").value = "";
     document.getElementById("studentName").value = "";
     document.getElementById("studentClass").value = "";
     document.getElementById("studentAge").value = "";
 
-    // refresh table
     await loadStudents();
   } catch (err) {
-    console.error(err);
+    console.error("saveStudent error:", err);
     messageDiv.textContent = "Error saving student.";
     messageDiv.style.color = "red";
   }
@@ -75,10 +74,15 @@ async function loadStudents() {
 
   try {
     const res = await fetch(GET_API);
-    if (!res.ok) throw new Error("Error loading students");
+    const text = await res.text();
+    console.log("GET status:", res.status);
+    console.log("GET raw:", text);
 
-    const students = await res.json();
-    console.log("GET result:", students);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+
+    const students = JSON.parse(text);
 
     if (!Array.isArray(students) || students.length === 0) {
       tbody.innerHTML = "<tr><td colspan='4'>No students found</td></tr>";
@@ -87,7 +91,7 @@ async function loadStudents() {
 
     tbody.innerHTML = "";
 
-    students.forEach(s => {
+    students.forEach((s) => {
       const tr = document.createElement("tr");
 
       const idTd = document.createElement("td");
@@ -111,9 +115,11 @@ async function loadStudents() {
 
     messageDiv.textContent = "";
   } catch (err) {
-    console.error(err);
+    console.error("loadStudents error:", err);
     tbody.innerHTML = "<tr><td colspan='4'>Error loading students</td></tr>";
     messageDiv.textContent = "Could not load students.";
     messageDiv.style.color = "red";
   }
+}
+
 }
