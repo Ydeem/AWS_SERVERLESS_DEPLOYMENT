@@ -1,7 +1,7 @@
 
 // EDIT with your API endpoints
-const POST_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/insertStudentData";
-const GET_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/getStudents";
+const POST_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production";
+const GET_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production";
 
 document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("saveBtn");
