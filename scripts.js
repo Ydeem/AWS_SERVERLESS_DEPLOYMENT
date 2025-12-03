@@ -1,125 +1,106 @@
-// scripts.js
+// EDIT with your API endpoints
+const POST_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/insertStudentData";
+const GET_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/getStudents";
 
-// Base invoke URL from API Gateway
-const BASE_URL =
-  "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production";
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("studentForm");
+  const messageDiv = document.getElementById("formMessage");
 
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    messageDiv.textContent = "";
 
+    if (!document.getElementById("termsCheckbox").checked) {
+      messageDiv.textContent = "Please accept the terms and conditions.";
+      messageDiv.style.color = "red";
+      return;
+    }
 
-// Full endpoints (change paths if your API routes use different names)
-const INSERT_URL = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/insertStudentData";
-const GET_URL = https:"//yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/getStudents";
+    const studentName = document.getElementById("studentName").value.trim();
+    const studentAge = document.getElementById("studentAge").value.trim();
+    const studentClass = document.getElementById("studentClass").value.trim();
+    const studentEmail = document.getElementById("studentEmail").value.trim();
 
-$(document).ready(function () {
-  // Save student button
-  $("#savestudent").click(function () {
-    const studentid = $("#studentid").val().trim();
-    const name = $("#name").val().trim();
-    const studentClass = $("#class").val().trim();
-    const age = $("#age").val().trim();
-
-    if (!studentid || !name || !studentClass || !age) {
-      $("#studentSaved").text("Please fill in all fields.").css("color", "red");
+    if (!studentName || !studentAge) {
+      messageDiv.textContent = "Name and Age are required.";
+      messageDiv.style.color = "red";
       return;
     }
 
     const payload = {
-      studentid: studentid,
-      name: name,
-      class: studentClass,
-      age: age,
+      studentName,
+      studentAge,
+      studentClass,
+      studentEmail,
     };
 
-    $.ajax({
-      url: INSERT_URL,
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify(payload),
-      success: function (response) {
-        // Response may be a string or object depending on API Gateway settings
-        let msg = "Student data saved successfully!";
-        try {
-          const resObj = typeof response === "string" ? JSON.parse(response) : response;
-          if (resObj.message) {
-            msg = resObj.message;
-          }
-        } catch (e) {}
+    try {
+      const response = await fetch(POST_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-        $("#studentSaved").text(msg).css("color", "green");
+      if (!response.ok) throw new Error("Failed to save student");
 
-        // clear inputs
-        $("#studentid").val("");
-        $("#name").val("");
-        $("#class").val("");
-        $("#age").val("");
+      await response.json();
 
-        // Refresh table after saving
-        loadStudents();
-      },
-      error: function (xhr, status, error) {
-        console.log("Error saving student:", error);
-        $("#studentSaved")
-          .text("Error saving student data.")
-          .css("color", "red");
-      },
-    });
+      messageDiv.textContent = "Student saved successfully!";
+      messageDiv.style.color = "green";
+      form.reset();
+      await loadStudents();
+    } catch (err) {
+      console.error(err);
+      messageDiv.textContent = "Error saving student.";
+      messageDiv.style.color = "red";
+    }
   });
 
-  // View all students button
-  $("#getstudents").click(function () {
-    loadStudents();
-  });
+  loadStudents();
 });
 
-// Function to load students and fill the table
-function loadStudents() {
-  $.ajax({
-    url: GET_URL,
-    type: "GET",
-    success: function (response) {
-      // Parse if needed
-      let students;
-      try {
-        students =
-          typeof response === "string" ? JSON.parse(response) : response;
-      } catch (e) {
-        console.log("Error parsing response:", e);
-        $("#studentSaved")
-          .text("Error loading student data.")
-          .css("color", "red");
-        return;
-      }
+async function loadStudents() {
+  const tbody = document.getElementById("studentsTableBody");
+  tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
 
-      if (!Array.isArray(students)) {
-        students = [students];
-      }
+  try {
+    const response = await fetch(GET_API);
+    if (!response.ok) throw new Error("Failed to load");
 
-      const tbody = $("#studentTable tbody");
-      tbody.empty();
+    const students = await response.json();
 
-      if (students.length === 0) {
-        $("#studentSaved").text("No students found.").css("color", "red");
-        return;
-      } else {
-        $("#studentSaved").text("").css("color", "");
-      }
+    if (!Array.isArray(students) || students.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='4'>No students found</td></tr>";
+      return;
+    }
 
-      students.forEach(function (student) {
-        const row = $("<tr></tr>");
+    tbody.innerHTML = "";
 
-        $("<td></td>").text(student.studentid || "").appendTo(row);
-        $("<td></td>").text(student.name || "").appendTo(row);
-        $("<td></td>").text(student.class || "").appendTo(row);
-        $("<td></td>").text(student.age || "").appendTo(row);
+    students.forEach((s) => {
+      const tr = document.createElement("tr");
 
-        tbody.append(row);
-      });
-    },
-    error: function (xhr, status, error) {
-      console.log("Error loading students:", error);
-      $("#studentSaved")
-        .text("Error loading student data.")
-        .css("color", "red");
-    },
-  });
+      const nameTd = document.createElement("td");
+      nameTd.textContent = s.studentName || "";
+      tr.appendChild(nameTd);
+
+      const ageTd = document.createElement("td");
+      ageTd.textContent = s.studentAge || "";
+      tr.appendChild(ageTd);
+
+      const classTd = document.createElement("td");
+      classTd.textContent = s.studentClass || "";
+      tr.appendChild(classTd);
+
+      const emailTd = document.createElement("td");
+      emailTd.textContent = s.studentEmail || "";
+      tr.appendChild(emailTd);
+
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = "<tr><td colspan='4'>Error loading students</td></tr>";
+  }
 }
