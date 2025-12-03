@@ -1,5 +1,5 @@
 // Correct API endpoint
-var API_ENDPOINT = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production";
+var API_ENDPOINT = "https://yemoe9i10j.execute-api.us-east-1.amazonaws.com/prod";
 // If you attached GET/POST to /students, then:
 // var API_ENDPOINT = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/students";
 
