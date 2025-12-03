@@ -1,125 +1,87 @@
+// Put your real API endpoint here (same for GET and POST)
+var API_ENDPOINT = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production";
+// If your methods are on a path like /students, use:
+// var API_ENDPOINT = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production/students";
 
-// EDIT with your API endpoints
-const POST_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production";
-const GET_API = "https://yjp7n8smga.execute-api.us-east-1.amazonaws.com/Production";
+// -------------- POST: save student data --------------
+document.getElementById("savestudent").onclick = function () {
+    // Build the object exactly how your Lambda expects it
+    var inputData = {
+        "studentid": $("#studentid").val(),       // partition key
+        "studentName": $("#name").val(),
+        "studentClass": $("#class").val(),
+        "studentAge": $("#age").val()
+    };
 
-document.addEventListener("DOMContentLoaded", () => {
-  const saveBtn = document.getElementById("saveBtn");
-  const viewBtn = document.getElementById("viewBtn");
+    $.ajax({
+        url: API_ENDPOINT,
+        type: "POST",
+        data: JSON.stringify(inputData),
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            console.log("POST success:", response);
+            document.getElementById("studentSaved").innerHTML = "Student Data Saved!";
 
-  saveBtn.addEventListener("click", saveStudent);
-  viewBtn.addEventListener("click", loadStudents);
-
-  // optionally: loadStudents();
-});
-
-async function saveStudent() {
-  const messageDiv = document.getElementById("message");
-
-  const studentId    = document.getElementById("studentId").value.trim();
-  const studentName  = document.getElementById("studentName").value.trim();
-  const studentClass = document.getElementById("studentClass").value.trim();
-  const studentAge   = document.getElementById("studentAge").value.trim();
-
-  if (!studentId || !studentName) {
-    messageDiv.textContent = "Student ID and Name are required.";
-    messageDiv.style.color = "red";
-    return;
-  }
-
-  const payload = {
-    studentid: studentId,      // must match Lambda
-    studentName,
-    studentClass,
-    studentAge,
-  };
-
-  try {
-    const res = await fetch(POST_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+            // Optional: clear inputs
+            $("#studentid").val("");
+            $("#name").val("");
+            $("#class").val("");
+            $("#age").val("");
+        },
+        error: function (xhr, status, err) {
+            console.error("POST error:", status, err, xhr.responseText);
+            alert("Error saving student data.");
+        }
     });
+};
 
-    const text = await res.text();
-    console.log("POST status:", res.status);
-    console.log("POST raw:", text);
+// -------------- GET: retrieve all students --------------
+document.getElementById("getstudents").onclick = function () {
+    $.ajax({
+        url: API_ENDPOINT,
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+            console.log("GET success raw:", response);
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${text}`);
-    }
+            // If API Gateway gives us a string, parse it
+            var students = response;
+            if (typeof response === "string") {
+                try {
+                    students = JSON.parse(response);
+                } catch (e) {
+                    console.error("JSON parse error:", e);
+                    alert("Error reading student data.");
+                    return;
+                }
+            }
 
-    // success
-    messageDiv.textContent = "Student saved successfully!";
-    messageDiv.style.color = "green";
+            // Clear old rows (keep header)
+            $("#studentTable tr").slice(1).remove();
 
-    document.getElementById("studentId").value = "";
-    document.getElementById("studentName").value = "";
-    document.getElementById("studentClass").value = "";
-    document.getElementById("studentAge").value = "";
+            // If no students
+            if (!Array.isArray(students) || students.length === 0) {
+                $("#studentTable").append(
+                    "<tr><td colspan='4'>No students found</td></tr>"
+                );
+                return;
+            }
 
-    await loadStudents();
-  } catch (err) {
-    console.error("saveStudent error:", err);
-    messageDiv.textContent = "Error saving student.";
-    messageDiv.style.color = "red";
-  }
-}
-
-async function loadStudents() {
-  const tbody = document.getElementById("studentsTableBody");
-  const messageDiv = document.getElementById("message");
-
-  tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
-
-  try {
-    const res = await fetch(GET_API);
-    const text = await res.text();
-    console.log("GET status:", res.status);
-    console.log("GET raw:", text);
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${text}`);
-    }
-
-    const students = JSON.parse(text);
-
-    if (!Array.isArray(students) || students.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='4'>No students found</td></tr>";
-      return;
-    }
-
-    tbody.innerHTML = "";
-
-    students.forEach((s) => {
-      const tr = document.createElement("tr");
-
-      const idTd = document.createElement("td");
-      idTd.textContent = s.studentid || "";
-      tr.appendChild(idTd);
-
-      const nameTd = document.createElement("td");
-      nameTd.textContent = s.studentName || "";
-      tr.appendChild(nameTd);
-
-      const classTd = document.createElement("td");
-      classTd.textContent = s.studentClass || "";
-      tr.appendChild(classTd);
-
-      const ageTd = document.createElement("td");
-      ageTd.textContent = s.studentAge || "";
-      tr.appendChild(ageTd);
-
-      tbody.appendChild(tr);
+            // Add a row for each student
+            $.each(students, function (i, data) {
+                $("#studentTable").append(
+                    "<tr>" +
+                    "<td>" + (data.studentid || "") + "</td>" +
+                    "<td>" + (data.studentName || "") + "</td>" +
+                    "<td>" + (data.studentClass || "") + "</td>" +
+                    "<td>" + (data.studentAge || "") + "</td>" +
+                    "</tr>"
+                );
+            });
+        },
+        error: function (xhr, status, err) {
+            console.error("GET error:", status, err, xhr.responseText);
+            alert("Error retrieving student data.");
+        }
     });
-
-    messageDiv.textContent = "";
-  } catch (err) {
-    console.error("loadStudents error:", err);
-    tbody.innerHTML = "<tr><td colspan='4'>Error loading students</td></tr>";
-    messageDiv.textContent = "Could not load students.";
-    messageDiv.style.color = "red";
-  }
-}
-
-}
+};
