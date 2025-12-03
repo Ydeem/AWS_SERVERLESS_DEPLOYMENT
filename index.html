@@ -2,68 +2,120 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Student Data</title>
+  <title>Save and See Student Data</title>
+
   <style>
-    body {
+    * {
+      box-sizing: border-box;
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
     }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+    }
+
     .container {
       max-width: 900px;
-      margin: 20px auto;
+      margin: 30px auto;
       background: #ffffff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 30px 25px 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
+
     h1 {
+      margin-top: 0;
+      margin-bottom: 25px;
+      font-size: 32px;
       color: #0b63ff;
-      margin-bottom: 20px;
     }
+
+    .form-row {
+      margin-bottom: 15px;
+    }
+
     label {
       display: block;
-      margin-top: 10px;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       font-weight: 600;
+      color: #333;
     }
-    input {
+
+    input[type="text"],
+    input[type="number"] {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       font-size: 14px;
-      border-radius: 4px;
       border: 1px solid #ccc;
+      border-radius: 5px;
+      outline: none;
+      transition: border 0.2s;
     }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus {
+      border-color: #0b63ff;
+    }
+
     .btn {
       width: 100%;
-      margin-top: 20px;
       padding: 12px;
+      margin-top: 18px;
       font-size: 16px;
       border: none;
-      border-radius: 4px;
-      color: #fff;
-      background: #0b63ff;
+      border-radius: 5px;
       cursor: pointer;
+      background: #0b63ff;
+      color: #fff;
+      font-weight: 600;
+      transition: background 0.2s;
     }
+
     .btn:hover {
       background: #0849bd;
     }
-    #message {
+
+    #studentSaved {
       margin-top: 10px;
       font-weight: 600;
+      color: #0b8a2b; /* success green – text will change from JS */
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 25px;
+      background: #fff;
     }
-    th, td {
+
+    th,
+    td {
+      padding: 10px 12px;
       border: 1px solid #ddd;
-      padding: 8px 10px;
       text-align: left;
+      font-size: 14px;
     }
+
     th {
-      background: #f4f4f4;
+      background: #f0f0f0;
+      font-weight: 700;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    @media (max-width: 700px) {
+      .container {
+        margin: 15px;
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
     }
   </style>
 </head>
@@ -71,25 +123,36 @@
   <div class="container">
     <h1>Save and See Student Data Here!</h1>
 
-    <label for="studentId">Student ID:</label>
-    <input type="text" id="studentId" />
+    <!-- Input form -->
+    <div class="form-row">
+      <label for="studentid">Student ID:</label>
+      <input type="text" id="studentid" />
+    </div>
 
-    <label for="studentName">Name:</label>
-    <input type="text" id="studentName" />
+    <div class="form-row">
+      <label for="name">Name:</label>
+      <input type="text" id="name" />
+    </div>
 
-    <label for="studentClass">Class:</label>
-    <input type="text" id="studentClass" />
+    <div class="form-row">
+      <label for="class">Class:</label>
+      <input type="text" id="class" />
+    </div>
 
-    <label for="studentAge">Age:</label>
-    <input type="number" id="studentAge" />
+    <div class="form-row">
+      <label for="age">Age:</label>
+      <input type="number" id="age" />
+    </div>
 
-    <!-- THESE ARE THE TWO BLUE BUTTONS -->
-    <button id="saveBtn" class="btn">Save Student Data</button>
-    <button id="viewBtn" class="btn">View all Students</button>
+    <!-- Buttons -->
+    <button id="savestudent" class="btn">Save Student Data</button>
+    <button id="getstudents" class="btn">View all Students</button>
 
-    <div id="message"></div>
+    <!-- Message from JS -->
+    <div id="studentSaved"></div>
 
-    <table>
+    <!-- Students table -->
+    <table id="studentTable">
       <thead>
         <tr>
           <th>Student ID</th>
@@ -98,12 +161,15 @@
           <th>Age</th>
         </tr>
       </thead>
-      <tbody id="studentsTableBody">
-        <!-- JS will insert rows here -->
+      <tbody>
+        <!-- Rows will be added here by JS -->
       </tbody>
     </table>
   </div>
 
+  <!-- jQuery (needed for your JS code) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Your JS file with the API calls -->
   <script src="scripts.js"></script>
 </body>
 </html>
